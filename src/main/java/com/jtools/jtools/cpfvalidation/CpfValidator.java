@@ -2,35 +2,23 @@ package com.jtools.jtools.cpfvalidation;
 
 public class CpfValidator {
     public boolean isCpfValid(String cpf) {
-        cpf = formatCpf(cpf);
-        validCpf(cpf);
+        String formattedCpf = formatCpf(cpf);
+        validCpf(formattedCpf);
 
         return areDigitsValid(
-                calculateFirstDigit(cpf),
-                calculateSecondDigit(cpf),
+                calculateDigits(formattedCpf, 9, 10),
+                calculateDigits(formattedCpf, 10, 11),
                 Character.getNumericValue(cpf.charAt(cpf.length() - 2)),
-                Character.getNumericValue(cpf.charAt(cpf.length() - 1)));
+                Character.getNumericValue(cpf.charAt(cpf.length() - 1))
+        );
     }
 
-    private int calculateFirstDigit(String cpf) {
+    private int calculateDigits(String cpf, int end, int multiplier){
         int sum = 0;
-
-        for (int i = 0; i < 9; i++) {
-            sum = sum + (10 - i) * Character.getNumericValue(cpf.charAt(i));
+        for (int i = 0; i < end; i++) {
+            sum += (multiplier - i) * Character.getNumericValue(cpf.charAt(i));
         }
         int remainder = sum % 11;
-
-        return remainder < 2 ? 0 : 11 - remainder;
-    }
-
-    private int calculateSecondDigit(String cpf) {
-        int sum = 0;
-
-        for (int i = 0; i <= 9; i++) {
-            sum = sum + (11 - i) * Character.getNumericValue(cpf.charAt(i));
-        }
-        int remainder = sum % 11;
-
         return remainder < 2 ? 0 : 11 - remainder;
     }
 
@@ -56,7 +44,7 @@ public class CpfValidator {
 
     private void validCpf(String cpf) {
         if (!containsOnlyDigits(cpf)) {
-            throw new IllegalArgumentException("CPF cannot contain letters");
+            throw new IllegalArgumentException("CPF cannot contain letters or symbols");
         }
         if (cpf.length() != 11) {
             throw new IllegalArgumentException("CPF must have 11 digits");
