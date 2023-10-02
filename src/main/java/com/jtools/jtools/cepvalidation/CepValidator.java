@@ -8,34 +8,47 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.json.JSONObject;
+
 public class CepValidator {
 
-    public boolean isCepValid(String cep) {
+    public boolean isCepValid(String cep) throws IOException {
+        if (isValidResponse(convertJsonString(viaCepApiCall(cep)))){
+            return true;
+        }
+        return false;
+    }
+
+    private BufferedReader viaCepApiCall(String cep) {
         try {
-            URL url = new URL("https://viacep.com.br/ws/01001000/json/");
+            URL url = new URL("https://viacep.com.br/ws/" + cep + "/json/");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-            BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String jsonstring = convertJsonString(response);
-
-            System.out.println(jsonstring);
-            System.out.println(response);
+            return new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        return true;
     }
 
-    private static String convertJsonString(BufferedReader bufferedReader) throws IOException{
-        String response, jsonString = "";
+    private static String convertJsonString(BufferedReader bufferedReader) throws IOException {
+        String response;
+        String jsonString = "";
 
-        while ((response= bufferedReader.readLine()) != null){
+        while ((response = bufferedReader.readLine()) != null) {
             jsonString += response;
         }
         return jsonString;
+    }
+
+    private static boolean isValidResponse(String string) {
+        try {
+            JSONObject json = new JSONObject(string);
+            return json.has("cep");
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
